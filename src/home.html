@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <div style="text-align: center; display: grid;  grid-template-columns: 70px 90px">
+        <h4>Welcome </h4><h4 id="userName"></h4>
+    </div>
+    <script>
+          const channel = new BroadcastChannel('my_channel');
+        let param = new URLSearchParams(window.location.search)
+            if(param.get('user')){
+                let userData = JSON.parse(atob(param.get('user')))
+        localStorage.setItem('userData', JSON.stringify(userData))
+        console.log(userData)
+            }
+        
+        const userName=JSON.parse(localStorage.getItem('userData')).displayName
+
+        document.getElementById('userName').innerHTML = userName
+
+        console.log(userName)
+    </script>
+</body>
+</html>

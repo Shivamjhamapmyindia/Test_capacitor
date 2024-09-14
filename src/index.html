@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tracking App</title>
+  <link rel="stylesheet" href="assets/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="assets/css/LineIcons.3.0.css" />
+  <link rel="stylesheet" href="assets/css/animate.css" />
+  <link rel="stylesheet" href="assets/css/tiny-slider.css" />
+  <link rel="stylesheet" href="assets/css/glightbox.min.css" />
+  <link rel="stylesheet" href="assets/css/main.css" />
+  <style>
+    section {
+      display: none;
+    }
+
+    section.active {
+      display: block;
+    }
+  </style>
+</head>
+
+<body>
+  <section id="intro" class="active">
+    <div class="preloader">
+      <div class="preloader-inner">
+        <div class="preloader-icon">
+          <span></span>
+          <span></span>
+        </div>
+      </div>
+    </div>
+    <div class="error-area">
+      <div class="d-table">
+        <div class="d-table-cell">
+          <div class="container">
+            <div class="error-content">
+              <h1>Welcome</h1>
+              <div class="button">
+                <button class="btn">Go to Login</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section id="home">
+    <div class="container">
+      <h4>Welcome </h4>
+      <h4 id="userName"></h4>
+
+      <button class="btn2" id="logout">Logout</button>
+    </div>
+  </section>
+
+  <script type="module">
+    import { Browser } from '@capacitor/browser';
+    import { App } from '@capacitor/app'; // For listening to deep links
+
+    document.querySelector('.btn').addEventListener('click', login);
+
+    async function login() {
+      try {
+        const isNativeApp = window.Capacitor && window.Capacitor.isNativePlatform();
+        const redirectUrl = isNativeApp ? 'myapp://login-success' : 'http://10.10.21.108:3000/home.html';
+
+        const response = await fetch('https://sslogin.shivamjha2001.com', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'redirect': redirectUrl,  // Add the redirect URL to headers
+          },
+        });
+
+        const data = await response.json();
+        console.log(data);
+
+        if (isNativeApp) {
+          // Open in native app browser
+          await Browser.open({
+            url: data.url,
+            presentationStyle: 'fullscreen',
+          });
+
+          // Listen for the deep link coming back to the app
+          App.addListener('appUrlOpen', (event) => {
+            console.log('App URL Opened', event);
+            if (event.url && event.url.includes('myapp://login-success')) {
+              const url = new URL(event.url);
+              const params = new URLSearchParams(url.search);
+              const user = atob(params.get('user'));
+              console.log('User Data:', user);
+              localStorage.setItem('userData', user);
+              document.getElementById('userName').innerHTML = JSON.parse(user).displayName;
+
+              document.getElementById('home').style.display = 'block';
+              document.getElementById('intro').style.display = 'none';
+
+            }
+          });
+
+        } else {
+          // Redirect in the browser
+          window.location.href = data.url;
+        }
+      } catch (error) {
+        console.error('Error during login:', error);
+      }
+    }
+
+  </script>
+
+  <script src="assets/js/bootstrap.min.js"></script>
+  <script src="assets/js/wow.min.js"></script>
+  <script src="assets/js/tiny-slider.js"></script>
+  <script src="assets/js/glightbox.min.js"></script>
+  <script src="assets/js/count-up.min.js"></script>
+  <script>
+    window.onload = function () {
+      window.setTimeout(fadeout, 500);
+      if (localStorage.getItem('userData')) {
+        console.log('User Data:', localStorage.getItem('userData'));
+        const isNativeApp = window.Capacitor && window.Capacitor.isNativePlatform();
+        if (isNativeApp) {
+          console.log('Native app detected', localStorage.getItem('userData'));
+          document.getElementById('userName').innerHTML = JSON.parse(localStorage.getItem('userData')).displayName;
+          document.getElementById('home').style.display = 'block';
+          document.getElementById('intro').style.display = 'none';
+        }
+        else {
+          window.location.href = 'home.html';
+        }
+      }
+    };
+
+    function fadeout() {
+      document.querySelector('.preloader').style.opacity = '0';
+      document.querySelector('.preloader').style.display = 'none';
+    }
+
+    document.querySelector('.btn2').addEventListener('click', logout);
+    async function logout() {
+      localStorage.removeItem('userData');
+      document.getElementById('home').style.display = 'none';
+      document.getElementById('intro').style.display = 'block';
+    }
+  </script>
+</body>
+
+</html>
